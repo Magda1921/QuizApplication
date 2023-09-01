@@ -1,19 +1,30 @@
 package org.example;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
+import jakarta.persistence.Query;
 import org.example.model.Question;
 
 public class QuestionRepository {
-    public void createNewQuestion(int id, String question, String rightAnswer, String wrongAnswer1, String wrongAnswer2, String wrongAnswer3) {
+    private final EntityManager entityManager;
 
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("persistenceUnit");
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-//        Insert data
-         entityManager.getTransaction().begin();
-        Question newOne = new Question(id, question, rightAnswer, wrongAnswer1, wrongAnswer2, wrongAnswer3);
-        entityManager.persist(newOne);
+    public QuestionRepository(EntityManager entityManager) {
+
+        this.entityManager = entityManager;
+    }
+
+    public void saveNewQuestion(Question question) {
+
+        entityManager.getTransaction().begin();
+        Question newQuestion = new Question();
+        entityManager.persist(newQuestion);
         entityManager.getTransaction().commit();
     }
+
+    public void removeQuestion(Question question) {
+        entityManager.getTransaction().begin();
+        entityManager.remove(question);
+        entityManager.getTransaction().commit();
+    }
+
+
 }
