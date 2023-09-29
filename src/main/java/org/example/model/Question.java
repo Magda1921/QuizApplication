@@ -1,16 +1,16 @@
 package org.example.model;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
 public class Question {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Column
     private String question;
@@ -18,13 +18,24 @@ public class Question {
     @Column
     private String quizTopic;
 
+
+    @OneToMany(mappedBy = "question", cascade = {CascadeType.ALL})
+    private List<Answer> answers;
+
     public Question() {
     }
 
-    public Question(int id, String question, String quizTopic) {
+    public Question(int id, String question, String quizTopic, List<Answer> answers) {
         this.id = id;
         this.question = question;
         this.quizTopic = quizTopic;
+        this.answers = answers;
+    }
+
+    public Question(String question, String quizTopic, List<Answer> answers) {
+        this.question = question;
+        this.quizTopic = quizTopic;
+        this.answers = answers;
     }
 
     public int getId() {
@@ -51,17 +62,25 @@ public class Question {
         this.quizTopic = quizTopic;
     }
 
+    public List<Answer> getAnswers() {
+        return answers;
+    }
+
+    public void setAnswers(List<Answer> answers) {
+        this.answers = answers;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Question question1 = (Question) o;
-        return id == question1.id && Objects.equals(question, question1.question) && Objects.equals(quizTopic, question1.quizTopic);
+        return id == question1.id && Objects.equals(question, question1.question) && Objects.equals(quizTopic, question1.quizTopic) && Objects.equals(answers, question1.answers);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, question, quizTopic);
+        return Objects.hash(id, question, quizTopic, answers);
     }
 }
 

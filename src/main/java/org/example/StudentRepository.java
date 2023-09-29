@@ -4,7 +4,7 @@ import jakarta.persistence.EntityManager;
 import org.example.model.Student;
 
 public class StudentRepository {
-    public final EntityManager entityManager;
+    private final EntityManager entityManager;
 
     public StudentRepository(EntityManager entityManager) {
         this.entityManager = entityManager;

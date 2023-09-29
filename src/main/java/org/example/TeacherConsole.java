@@ -1,6 +1,7 @@
 package org.example;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -10,6 +11,7 @@ import org.example.model.Question;
 import org.example.model.Result;
 import org.example.model.Student;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -22,44 +24,83 @@ public class TeacherConsole {
         this.entityManager = entityManager;
     }
 
+
     public void addNewQuestion() {
 
-        Scanner scanner = new Scanner(System.in);
         while (true) {
+            Question question = new Question();
             System.out.println("Enter next question or click x for exit");
             String questionDescription = scanner.nextLine();
             if (questionDescription.equals("x")) {
-                scanner.close();
                 break;
             } else {
-
-                System.out.println("Enter the 'a' answer");
-                String a = scanner.nextLine();
-                System.out.println("Enter the 'b' answer");
-                String b = scanner.nextLine();
-                System.out.println("Enter the 'c' answer");
-                String c = scanner.nextLine();
-                System.out.println("Enter the 'd' answer");
-                String d = scanner.nextLine();
-                System.out.println("Enter the right answer");
-                String rightAnswer = scanner.nextLine();
                 System.out.println("What topic of the quiz should this question be assigned to?");
                 String quizTopic = scanner.nextLine();
-
-
-                QuestionRepository questionRepository = new QuestionRepository(entityManager);
-                Question question = new Question();
                 question.setQuestion(questionDescription);
-                questionRepository.saveNewQuestion(question);
-                question.getId();
-                System.out.println(question.getId());
-                Answer answer = new Answer();
-
-
-
+                question.setQuizTopic(quizTopic);
+                QuestionRepository questionRepository = new QuestionRepository(entityManager);
+                boolean questionAlreadyExist = questionAlreadyExist(questionDescription);
+                if (questionAlreadyExist) {
+                    System.out.println("I'm sorry, but we cannot add this question to our database because there is already a question with the exact same description.");
+                    break;
+                } else {
+                    List<Answer> answers = addAnswers(question);
+                    questionRepository.saveNewQuestion(question);
+                    saveAnswers(answers);
+                }
             }
         }
-        scanner.close();
+    }
+
+    public List<Answer> addAnswers(Question question) {
+        Answer[] answers = new Answer[4];
+        int correctAnswers = 0;
+        int falseAnswers = 0;
+        for (int i = 0; i < 4; i++) {
+            answers[i] = new Answer();
+            System.out.println("Enter the " + (i + 1) + " answer");
+            String answerDescription = scanner.nextLine();
+            System.out.println("Is it a correct answer? If it's a correct answer, please enter t, else please enter f");
+            String isCorrectString = scanner.nextLine();
+            boolean isCorrect = false;
+            if (isCorrectString.equals("t")) {
+                isCorrect = true;
+                correctAnswers++;
+            } else if (isCorrectString.equals("f")) {
+                isCorrect = false;
+                falseAnswers++;
+            }
+            if (correctAnswers > 1) {
+                System.out.println("You cannot add more than 1 correct answer, please try add a question again.");
+                break;
+            }
+            answers[i].setAnswer(answerDescription);
+            answers[i].setCorrect(isCorrect);
+            answers[i].setQuestion(question);
+            if (falseAnswers == 3 & correctAnswers == 1) {
+                return List.of(answers);
+            } else {
+                break;
+            }
+        }
+        return List.of(answers);
+    }
+
+    public void saveAnswers(List<Answer> answers) {
+        for (int j = 0; j < 4; j++) {
+            AnswerRepository answerRepository = new AnswerRepository(entityManager);
+            answerRepository.saveNewAnswer(answers.get(j));
+        }
+    }
+
+    public boolean questionAlreadyExist(String questionDescription) {
+        QuestionRepository questionRepository = new QuestionRepository(entityManager);
+        try {
+            Question question = questionRepository.findQuestionByDescription(questionDescription);
+            return true;
+        } catch (NoResultException e) {
+            return false;
+        }
     }
 
     public void removeQuestion() {
@@ -67,7 +108,7 @@ public class TeacherConsole {
         System.out.println("Enter the question id you want to delete");
         int id = scanner.nextInt();
         QuestionRepository questionRepository = new QuestionRepository(entityManager);
-        Question question = entityManager.find(Question.class, id);
+        Question question = findQuestionById(id);
         questionRepository.removeQuestion(question);
 
     }
@@ -78,50 +119,28 @@ public class TeacherConsole {
     }
 
     public Question findQuestionById(int id) {
-        Question question = (Question) entityManager.createQuery("select question from Question question where question.id = ?1")
-                .setParameter(1, id)
-                .getSingleResult();
+        Question question = entityManager.find(Question.class, id);
         return question;
     }
 
     public void updateQuestionById(int id) {
-        Question questionToUpdate = entityManager.find(Question.class, id);
+        Question questionToUpdate = findQuestionById(id);
 
+        List <Answer> answers = questionToUpdate.getAnswers();
         QuestionRepository questionRepository = new QuestionRepository(entityManager);
         questionRepository.removeQuestion(questionToUpdate);
 
-//        System.out.println("Enter the new question: ");
-//        String newQuestion = scanner.nextLine();
-//        questionToUpdate.setQuestion(newQuestion);
-//
-//        System.out.println("Enter the new 'a' answer: ");
-//        String a = scanner.nextLine();
-//        questionToUpdate.setRightAnswer(newRightAnswer);
-//
-//        System.out.println("Enter the new 'b' answer: ");
-//        String b = scanner.nextLine();
-//        questionToUpdate.setWrongAnswer1(newWrongAnswer1);
-//
-//        System.out.println("Enter the new 'c' answer: ");
-//        String c = scanner.nextLine();
-//        questionToUpdate.setWrongAnswer2(newWrongAnswer2);
-//
-//        System.out.println("Enter the new 'd' answer: ");
-//        String d = scanner.nextLine();
-//        questionToUpdate.setWrongAnswer1(newWrongAnswer3);
-//
-//        System.out.println("Enter the right answer: ");
-//        String rightAnswer = scanner.nextLine();
-
-
+        Question question = new Question();
+        question.setId(id);
         System.out.println("Enter the new quiz topic: ");
         String newQuizTopic = scanner.nextLine();
-        questionToUpdate.setQuizTopic(newQuizTopic);
+        question.setQuizTopic(newQuizTopic);
+        System.out.println("Enter the new question description");
+        String newQuestionDescription = scanner.nextLine();
+        question.setQuestion(newQuestionDescription);
+       question.setAnswers(answers);
 
-        questionToUpdate.setId(id);
-
-        questionRepository.saveNewQuestion(questionToUpdate);
-
+        questionRepository.saveNewQuestion(question);
     }
 
     public List<Result> showAllResults() {

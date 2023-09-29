@@ -5,15 +5,16 @@ import org.example.model.Question;
 import org.example.model.Result;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class Quiz {
     private EntityManager entityManager;
 
-
     public void start() {
         EntityManagerProvider entityManagerProvider = new EntityManagerProvider();
         entityManager = entityManagerProvider.getEntityManager();
+
         String userChoice;
         Scanner scanner = new Scanner(System.in);
         System.out.println("Are you a teacher or a student? Please write teacher/student in a console.");
@@ -38,13 +39,13 @@ public class Quiz {
             System.out.println("1 - add a new question");
             System.out.println("2 - remove question");
             System.out.println("3 - show all questions");
-            System.out.println("4 - find question by id");
+            System.out.println("4 - find question by part of the description");
             System.out.println("5 - update question by id");
             System.out.println("6 - show all results");
             System.out.println("7 - find result by student name");
 
             number = Integer.parseInt(scanner.nextLine());
-
+            QuestionRepository questionRepository = new QuestionRepository(entityManager);
             if (number == 1) {
                 System.out.println("User selected one");
                 teacherConsole.addNewQuestion();
@@ -60,12 +61,12 @@ public class Quiz {
                     System.out.println("Quiz topic: " + q.getQuizTopic());
                 }
             } else if (number == 4) {
-                System.out.println("Write the id of the question that you want to find");
-                int wantedId = scanner.nextInt();
-                Question foundQuestionById = teacherConsole.findQuestionById(wantedId);
-                System.out.println(foundQuestionById.getId());
-                System.out.println(foundQuestionById.getQuestion());
-                System.out.println(foundQuestionById.getQuizTopic());
+                System.out.println("Write the part of the description of the question that you want to find");
+                String partOfDescription = scanner.nextLine();
+                List<Question> questions = questionRepository.findQuestionByName(partOfDescription);
+                for (Question question : questions) {
+                    System.out.println(question.getQuestion());
+                }
             } else if (number == 5) {
                 System.out.println("Write the id number of the question that you want to update");
                 int idToUpdate = scanner.nextInt();
@@ -85,10 +86,7 @@ public class Quiz {
                 String studentName = scanner.nextLine();
                 List<Result> results = teacherConsole.findResultByStudentName(studentName);
                 for (Result result : results) {
-                    System.out.println("Result id = " + result.getId());
-                    System.out.println("Result = " + result.getResult());
-                    System.out.println("Quiz Topic = " + result.getQuizTopic());
-                    System.out.println("Student name = " + result.getStudent().getName());
+                    System.out.println("Student name = " + result.getStudent().getName() + " Result = " + result.getResult() + " Quiz topic = " + result.getQuizTopic());
                 }
             }
         }
@@ -96,6 +94,7 @@ public class Quiz {
 
     public void studentConsole() {
         StudentConsole studentConsole = new StudentConsole(entityManager);
+        QuestionRepository questionRepository = new QuestionRepository(entityManager);
         int number = -1;
         Scanner scanner = new Scanner(System.in);
         while (number != 0) {
@@ -104,15 +103,11 @@ public class Quiz {
             System.out.println("1 - choose the quiz by topic and play");
             System.out.println("2 - add your account");
             System.out.println("3 - show list of available quizzes");
-            System.out.println("4 - find question by id");
+            System.out.println("4 - find question by description");
             number = scanner.nextInt();
             if (number == 1) {
                 System.out.println("User selected one");
-                System.out.println("Enter the quiz topic you want to play");
-                scanner.nextLine();
-                String quizTopic = scanner.nextLine();
-                List<Question> questions = studentConsole.findQuestionsbyQuizTopic(quizTopic);
-                studentConsole.play(questions);
+                studentConsole.play(questionRepository);
             } else if (number == 2) {
                 System.out.println("User selected two");
                 studentConsole.addNewStudent();
@@ -121,10 +116,15 @@ public class Quiz {
                 List<Question> questions = studentConsole.showQuiz();
                 questions.stream()
                         .map(Question::getQuizTopic)
+                        .distinct()
                         .forEach(System.out::println);
             } else if (number == 4) {
-                System.out.println("Write the id of the question that you want to find");
-
+                System.out.println("Write the part of the description of the question that you want to find");
+                String partOfDescription = scanner.nextLine();
+                List<Question> questions = questionRepository.findQuestionByName(partOfDescription);
+                for (Question question : questions) {
+                    System.out.println(question.getQuestion());
+                }
             }
         }
     }

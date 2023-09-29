@@ -4,41 +4,35 @@ import jakarta.persistence.*;
 
 import java.util.Objects;
 
+
 @Entity
 public class Answer {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column
-    private String a;
+    private String answer;
 
     @Column
-    private String b;
+    private boolean isCorrect;
 
-    @Column
-    private String c;
-
-    @Column
-    private String d;
-
-    @Column
-    private String rightAnswer;
-
-    @OneToOne
-    @JoinColumn (name = "questionId")
+    @ManyToOne
+    @JoinColumn(name = "questionId")
     private Question question;
 
     public Answer() {
     }
 
-    public Answer(int id, String a, String b, String c, String d, String rightAnswer, Question question) {
-        this.id = id;
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        this.d = d;
-        this.rightAnswer = rightAnswer;
+    public Answer(String answer, boolean isCorrect, Question question) {
+        this.answer = answer;
+        this.isCorrect = isCorrect;
         this.question = question;
+    }
+
+    public Answer(String answer, boolean isCorrect) {
+        this.answer = answer;
+        this.isCorrect = isCorrect;
     }
 
     public int getId() {
@@ -49,44 +43,20 @@ public class Answer {
         this.id = id;
     }
 
-    public String getA() {
-        return a;
+    public String getAnswer() {
+        return answer;
     }
 
-    public void setA(String a) {
-        this.a = a;
+    public void setAnswer(String answer) {
+        this.answer = answer;
     }
 
-    public String getB() {
-        return b;
+    public boolean isCorrect() {
+        return isCorrect;
     }
 
-    public void setB(String b) {
-        this.b = b;
-    }
-
-    public String getC() {
-        return c;
-    }
-
-    public void setC(String c) {
-        this.c = c;
-    }
-
-    public String getD() {
-        return d;
-    }
-
-    public void setD(String d) {
-        this.d = d;
-    }
-
-    public String getRightAnswer() {
-        return rightAnswer;
-    }
-
-    public void setRightAnswer(String rightAnswer) {
-        this.rightAnswer = rightAnswer;
+    public void setCorrect(boolean correct) {
+        isCorrect = correct;
     }
 
     public Question getQuestion() {
@@ -101,12 +71,12 @@ public class Answer {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Answer answer = (Answer) o;
-        return id == answer.id && Objects.equals(a, answer.a) && Objects.equals(b, answer.b) && Objects.equals(c, answer.c) && Objects.equals(d, answer.d) && Objects.equals(rightAnswer, answer.rightAnswer) && Objects.equals(question, answer.question);
+        Answer answer1 = (Answer) o;
+        return id == answer1.id && isCorrect == answer1.isCorrect && Objects.equals(answer, answer1.answer) && Objects.equals(question, answer1.question);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, a, b, c, d, rightAnswer, question);
+        return Objects.hash(id, answer, isCorrect, question);
     }
 }
