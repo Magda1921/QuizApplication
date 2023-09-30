@@ -7,7 +7,6 @@ import org.example.model.Result;
 import org.example.model.Student;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class StudentConsole {
 
@@ -40,11 +39,8 @@ public class StudentConsole {
         System.out.println("Enter the quiz topic you want to play");
         String quizTopic = scanner.nextLine();
 
-        AccountOperations accountOperations = new AccountOperations();
-        Student activeStudent = accountOperations.checkIfAccountExist();
-
+        Student activeStudent = getExistingAccount();
         List<Question> questions = questionRepository.findQuestionsbyQuizTopic(quizTopic);
-
         List<Question> quizQuestions = questionRepository.randomQuestions(questions);
 
         String corectAnswer = "";
@@ -53,7 +49,7 @@ public class StudentConsole {
 
         for (Question question : quizQuestions) {
             numberOfQuestions++;
-            System.out.println(question.getQuestion());
+            displayQuestion(question);
             List<Answer> answers = question.getAnswers();
             List<String> abcd = new ArrayList<>();
             abcd.add("a");
@@ -63,7 +59,7 @@ public class StudentConsole {
             for (int i = 0; i < 4; i++) {
                 HashMap<String, String> answerHashMap = new HashMap<String, String>();
                 answerHashMap.put(answers.get(i).getAnswer(), abcd.get(i));
-                System.out.println(answerHashMap);
+                displayAnswer(answerHashMap);
 
                 if (answers.get(i).isCorrect()) {
                     corectAnswer = answerHashMap.get(answers.get(i).getAnswer());
@@ -71,11 +67,47 @@ public class StudentConsole {
             }
             System.out.println("Enter the right answer (a, b, c or d): ");
             String answerFromUser = scanner.nextLine();
-            if (answerFromUser.equals(corectAnswer)) {
-                numberOfCorrectAnswers++;
-            }
+           numberOfCorrectAnswers = countNumberOfCorrectAnswers(answerFromUser, corectAnswer, numberOfCorrectAnswers);
         }
+
         addNewResult(numberOfQuestions, numberOfCorrectAnswers, quizTopic, activeStudent);
+    }
+
+    public int countNumberOfCorrectAnswers(String answerFromUser, String correctAnswer, int numberOfCorrectAnswers) {
+        if (answerFromUser.equals(correctAnswer)) {
+            numberOfCorrectAnswers++;
+        }
+        return numberOfCorrectAnswers;
+    }
+
+    public void displayQuestion(Question question) {
+        System.out.println(question.getQuestion());
+    }
+
+    public void displayAnswer(HashMap<String, String> answerHashMap) {
+        System.out.println(answerHashMap);
+    }
+
+    public Student getExistingAccount() {
+
+        System.out.println("Do you have an account? Please enter true/false");
+        Scanner scanner = new Scanner(System.in);
+        boolean accountIsActive = scanner.nextBoolean();
+        Student activeStudent = new Student();
+        StudentConsole studentConsole = new StudentConsole(entityManager);
+
+        if (accountIsActive) {
+            scanner.nextLine();
+            System.out.println("Please enter your name");
+            String studentName = scanner.nextLine();
+            activeStudent = studentConsole.findStudentByStudentName(studentName);
+        } else if (!accountIsActive) {
+            System.out.println("Please add a new account");
+            studentConsole.addNewStudent();
+            activeStudent = new Student();
+
+        }
+        return activeStudent;
     }
 
     public List<Question> showQuiz() {

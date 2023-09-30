@@ -3,9 +3,7 @@ package quizApplication;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
-import org.example.ResultRepository;
-import org.example.StudentConsole;
-import org.example.StudentRepository;
+import org.example.*;
 import org.example.model.Answer;
 import org.example.model.Question;
 import org.example.model.Result;
@@ -14,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -25,6 +24,7 @@ public class StudentConsoleTest {
     private EntityTransaction entityTransaction;
     private StudentRepository studentRepository;
     private ResultRepository resultRepository;
+    private QuestionRepository questionRepository;
     TypedQuery<Question> query;
     TypedQuery<Student> query1;
 
@@ -38,6 +38,7 @@ public class StudentConsoleTest {
         studentConsole = new StudentConsole(entityManager);
         studentRepository = new StudentRepository(entityManager);
         resultRepository = new ResultRepository(entityManager);
+        questionRepository = new QuestionRepository(entityManager);
     }
 
     @Test
@@ -73,10 +74,11 @@ public class StudentConsoleTest {
         when(entityManager.createQuery("select question from Question question")).thenReturn(query);
         when(query.getResultList()).thenReturn(questions);
 //        when
-        List <Question> results = studentConsole.showQuiz();
+        List<Question> results = studentConsole.showQuiz();
 //        then
         assertEquals(questions, results);
     }
+
     @Test
     public void shouldAddNewResult() {
 //        given
@@ -92,21 +94,21 @@ public class StudentConsoleTest {
 //        when
         resultRepository.saveNewResult(result);
 //        then
-        verify(entityManager,times(1)).persist(result);
+        verify(entityManager, times(1)).persist(result);
     }
 
     @Test
-    public void shouldFindStudentByStudentNameIfOneStudentWithSpecificNameExist(){
+    public void shouldFindStudentByStudentNameIfOneStudentWithSpecificNameExist() {
 //        given
         Student student = new Student();
         int studentId = 2;
         String studentName = "Anna";
         student.setId(studentId);
         student.setName(studentName);
-        List <Result> results = new ArrayList<>();
+        List<Result> results = new ArrayList<>();
         student.setResults(results);
 
-        List <Student> students = List.of(student);
+        List<Student> students = List.of(student);
         when(entityManager.createQuery("select student from Student student where student.name = ?1")).thenReturn(query1);
         when(query1.setParameter(eq(1), eq(studentName))).thenReturn(query1);
         when(query1.getResultList()).thenReturn(students);
@@ -116,5 +118,35 @@ public class StudentConsoleTest {
         assertEquals(student, studentResult);
     }
 
+    @Test
+    public void shouldGetTheCorrectAnswer() {
+//        given
+        Question question1 = new Question();
+        Answer answer1 = new Answer("answer1", true, question1);
+        Answer answer2 = new Answer("answer2", false, question1);
+        Answer answer3 = new Answer("answer3", false, question1);
+        Answer answer4 = new Answer("answer4", false, question1);
+        List<Answer> answers1 = List.of(answer1, answer2, answer3, answer4);
+        question1.setAnswers(answers1);
+        List<String> abcd = new ArrayList<>();
+        abcd.add("a");
+        abcd.add("b");
+        abcd.add("c");
+        abcd.add("d");
+
+        String corectAnswer = "";
+//        when
+        for (int i = 0; i < 4; i++) {
+            HashMap<String, String> answerHashMap = new HashMap<String, String>();
+            answerHashMap.put(answers1.get(i).getAnswer(), abcd.get(i));
+            if (answers1.get(i).isCorrect()) {
+                corectAnswer = answerHashMap.get(answers1.get(i).getAnswer());
+            }
+        }
+//        then
+        assertEquals("a", corectAnswer);
     }
+
+}
+
 
