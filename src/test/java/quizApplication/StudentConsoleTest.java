@@ -8,9 +8,12 @@ import org.example.model.Answer;
 import org.example.model.Question;
 import org.example.model.Result;
 import org.example.model.Student;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,9 +27,10 @@ public class StudentConsoleTest {
     private EntityTransaction entityTransaction;
     private StudentRepository studentRepository;
     private ResultRepository resultRepository;
-    private QuestionRepository questionRepository;
     TypedQuery<Question> query;
     TypedQuery<Student> query1;
+    private final PrintStream originalOut = System.out;
+    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
 
     @Before
     public void setUp() {
@@ -34,11 +38,16 @@ public class StudentConsoleTest {
         entityTransaction = mock(EntityTransaction.class);
         query = mock(TypedQuery.class);
         query1 = mock(TypedQuery.class);
+        System.setOut(new PrintStream(outContent));
 
         studentConsole = new StudentConsole(entityManager);
         studentRepository = new StudentRepository(entityManager);
         resultRepository = new ResultRepository(entityManager);
-        questionRepository = new QuestionRepository(entityManager);
+    }
+
+    @After
+    public void after() {
+        System.setOut(originalOut);
     }
 
     @Test
@@ -56,18 +65,18 @@ public class StudentConsoleTest {
     @Test
     public void shouldReturnListOfQuestionsReturnedFromDb() {
 //        given
-        List<Answer> answers1 = new ArrayList<>();
         Question question1 = new Question();
         question1.setId(1);
         question1.setQuestion("questionDescription1");
         question1.setQuizTopic("topic");
+        List<Answer> answers1 = new ArrayList<>();
         question1.setAnswers(answers1);
 
-        List<Answer> answers2 = new ArrayList<>();
         Question question2 = new Question();
         question2.setId(2);
         question2.setQuestion("questionDescription2");
         question2.setQuizTopic("topic");
+        List<Answer> answers2 = new ArrayList<>();
         question2.setAnswers(answers2);
 
         List<Question> questions = List.of(question1, question2);
@@ -147,6 +156,109 @@ public class StudentConsoleTest {
         assertEquals("a", corectAnswer);
     }
 
+    @Test
+    public void shouldCountOfCorrectAnswersIfUserAnsweredCorrect() {
+//        given
+        String answerFromUser = "a";
+        String correctAnswer = "a";
+        int numberOfCorrectAnswers = 0;
+//        when
+        if (answerFromUser.equals(correctAnswer)) {
+            numberOfCorrectAnswers++;
+        }
+//        then
+        assertEquals(1, numberOfCorrectAnswers);
+    }
+
+    @Test
+    public void shouldCountOfCorrectAnswersIfUserAnsweredIncorrect() {
+//        given
+        String answerFromUser = "b";
+        String correctAnswer = "a";
+        int numberOfCorrectAnswers = 0;
+//        when
+        if (answerFromUser.equals(correctAnswer)) {
+            numberOfCorrectAnswers++;
+        }
+//        then
+        assertEquals(0, numberOfCorrectAnswers);
+    }
+
+    @Test
+    public void shouldDisplayQuestionToConsole() {
+//        given
+        Question question1 = new Question();
+        question1.setId(1);
+        question1.setQuestion("questionDescription1");
+        question1.setQuizTopic("topic");
+        List<Answer> answers1 = new ArrayList<>();
+        question1.setAnswers(answers1);
+
+//        when
+        studentConsole.displayQuestion(question1);
+//        then
+        String consoleOutput = outContent.toString();
+        String expectedString = "questionDescription1";
+        assertEquals(expectedString, consoleOutput.trim());
+    }
+
+    @Test
+    public void shouldDisplayAnswerToConsole() {
+//        given
+        Question question1 = new Question();
+        Answer answer1 = new Answer("answer1", true, question1);
+        Answer answer2 = new Answer("answer2", false, question1);
+        Answer answer3 = new Answer("answer3", false, question1);
+        Answer answer4 = new Answer("answer4", false, question1);
+        List<Answer> answers = List.of(answer1, answer2, answer3, answer4);
+        question1.setAnswers(answers);
+        List<String> abcd = new ArrayList<>();
+        abcd.add("a");
+        abcd.add("b");
+        abcd.add("c");
+        abcd.add("d");
+
+        HashMap<String, String> answerHashMap = new HashMap<String, String>();
+        answerHashMap.put(answer1.getAnswer(), abcd.get(0));
+
+//        when
+        studentConsole.displayAnswer(answerHashMap);
+//        then
+        String consoleOutput = outContent.toString();
+        String expectedString = "{answer1=a}";
+        assertEquals(expectedString, consoleOutput.trim());
+    }
+
+    @Test
+    public void shouldGetTheExistingStudentWhenAccountIsActive() {
+//        given
+        boolean accountIsActive = true;
+        String studentName = "user";
+        Student activeStudent = new Student(1,studentName);
+        List <Student> students = List.of(activeStudent);
+
+        when(entityManager.createQuery("select student from Student student where student.name = ?1")).thenReturn(query1);
+        when(query1.setParameter(eq(1), eq(studentName))).thenReturn(query1);
+        when(query1.getResultList()).thenReturn(students);
+//        when
+        Student studentResult = studentConsole.findStudentByStudentName(studentName);
+//        then
+        assertEquals(activeStudent, studentResult);
+    }
+
+    @Test
+    public void shouldGetTheExistingStudentWhenAccountIsInactive() {
+//        given
+        boolean accountIsActive = false;
+        Student student = new Student(1, "Magda");
+        when(entityManager.getTransaction()).thenReturn(entityTransaction);
+//        when
+        studentRepository.saveNewStudent(student);
+//        then
+        verify(entityManager, times(1)).persist(student);
+
+    }
 }
+
 
 

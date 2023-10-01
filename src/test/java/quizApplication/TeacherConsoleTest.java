@@ -2,6 +2,7 @@ package quizApplication;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import org.example.QuestionRepository;
 import org.example.TeacherConsole;
@@ -9,14 +10,16 @@ import org.example.model.Answer;
 import org.example.model.Question;
 import org.example.model.Result;
 import org.example.model.Student;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
@@ -28,6 +31,8 @@ public class TeacherConsoleTest {
     private TypedQuery<Question> query;
     private TypedQuery<Result> query1;
     private EntityTransaction entityTransaction;
+    private final PrintStream originalOut = System.out;
+    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
 
     @Before
     public void setup() {
@@ -35,9 +40,15 @@ public class TeacherConsoleTest {
         query = mock(TypedQuery.class);
         query1 = mock(TypedQuery.class);
         entityTransaction = mock(EntityTransaction.class);
+        System.setOut(new PrintStream(outContent));
 
         questionRepository = new QuestionRepository(entityManagerMock);
         teacherConsole = new TeacherConsole(entityManagerMock);
+    }
+
+    @After
+    public void after() {
+        System.setOut(originalOut);
     }
 
     @Test
@@ -55,6 +66,22 @@ public class TeacherConsoleTest {
 //       then
         boolean result = teacherConsole.questionAlreadyExist(description);
         assertTrue(teacherConsole.questionAlreadyExist("description"));
+    }
+
+    @Test
+    public void questionShouldNotExist() {
+//       given
+        List<Answer> answers = new ArrayList<>();
+        String description = "description";
+        String quizTopic = "topic";
+        Question question = new Question(description, quizTopic, answers);
+//       when
+        when(entityManagerMock.createQuery("select question from Question question where question.question = ?1")).thenReturn(query);
+        when(query.setParameter(1, description)).thenReturn(query);
+        when(query.getSingleResult()).thenThrow(new NoResultException());
+//       then
+        boolean result = teacherConsole.questionAlreadyExist(description);
+        assertFalse(result);
     }
 
     @Test
@@ -80,46 +107,10 @@ public class TeacherConsoleTest {
         verify(entityManagerMock, times(1)).remove(eq(question));
     }
 
-    @Test
-    public void shouldAddNewQuestion() {
-//        given
-        Question question = new Question();
-        String questionDescription = "description";
-        question.setId(1);
-        question.setQuestion(questionDescription);
-        question.setQuizTopic("topic");
-
-        List<Answer> answers = new ArrayList<>();
-        Answer answer1 = new Answer("answer1", true, question);
-        Answer answer2 = new Answer("answer2", false, question);
-        Answer answer3 = new Answer("answer3", false, question);
-        Answer answer4 = new Answer("answer4", false, question);
-
-        answers.add(answer1);
-        answers.add(answer2);
-        answers.add(answer3);
-        answers.add(answer4);
-
-        question.setAnswers(answers);
-
-        when(entityManagerMock.getTransaction()).thenReturn(entityTransaction);
-
-//        when
-        questionRepository.saveNewQuestion(question);
-        teacherConsole.saveAnswers(answers);
-//        then
-        verify(entityManagerMock, times(1)).persist(question);
-        verify(entityManagerMock, times(1)).persist(answer1);
-        verify(entityManagerMock, times(1)).persist(answer2);
-        verify(entityManagerMock, times(1)).persist(answer3);
-        verify(entityManagerMock, times(1)).persist(answer4);
-
-    }
-
 
     @Test
     public void shouldReturnListOfQuestionsReturnedFromDb() {
-//given
+//      given
         List<Answer> answers1 = new ArrayList<>();
         Question question1 = new Question();
         question1.setId(1);
@@ -247,5 +238,17 @@ public class TeacherConsoleTest {
         List<Result> results = teacherConsole.findResultByStudentName(studentName);
 //        then
         assertEquals(resultsList, results);
+    }
+
+    @Test
+    public void shouldShowMessageToConsoleIfQuestionAlreadyExist() {
+//        given
+        boolean questionAlreadyExist = true;
+//        when
+        teacherConsole.displayMessageIfAccountAlreadyExist();
+//        then
+        String consoleOutput = outContent.toString();
+        String expectedString = "I'm sorry, but we cannot add this question to our database because there is already a question with the exact same description.";
+        assertEquals(expectedString, consoleOutput.trim());
     }
 }

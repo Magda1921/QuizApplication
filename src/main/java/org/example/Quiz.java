@@ -3,9 +3,9 @@ package org.example;
 import jakarta.persistence.EntityManager;
 import org.example.model.Question;
 import org.example.model.Result;
+import org.example.model.Student;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Scanner;
 
 public class Quiz {
@@ -63,7 +63,7 @@ public class Quiz {
             } else if (number == 4) {
                 System.out.println("Write the part of the description of the question that you want to find");
                 String partOfDescription = scanner.nextLine();
-                List<Question> questions = questionRepository.findQuestionByName(partOfDescription);
+                List<Question> questions = questionRepository.findQuestionByPartOfName(partOfDescription);
                 for (Question question : questions) {
                     System.out.println(question.getQuestion());
                 }
@@ -110,7 +110,8 @@ public class Quiz {
                 studentConsole.play(questionRepository);
             } else if (number == 2) {
                 System.out.println("User selected two");
-                studentConsole.addNewStudent();
+                Student student = studentConsole.addNewStudent();
+                studentConsole.saveNewStudent(student);
             } else if (number == 3) {
                 System.out.println("User selected three");
                 List<Question> questions = studentConsole.showQuiz();
@@ -121,7 +122,7 @@ public class Quiz {
             } else if (number == 4) {
                 System.out.println("Write the part of the description of the question that you want to find");
                 String partOfDescription = scanner.nextLine();
-                List<Question> questions = questionRepository.findQuestionByName(partOfDescription);
+                List<Question> questions = questionRepository.findQuestionByPartOfName(partOfDescription);
                 for (Question question : questions) {
                     System.out.println(question.getQuestion());
                 }

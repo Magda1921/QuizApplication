@@ -1,8 +1,6 @@
 package org.example;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
-import org.example.model.Answer;
 import org.example.model.Question;
 
 import java.util.ArrayList;
@@ -45,7 +43,7 @@ public class QuestionRepository {
 
     }
 
-    public List<Question> findQuestionByName(String partOfDescription) {
+    public List<Question> findQuestionByPartOfName(String partOfDescription) {
         String searchString = "%" + partOfDescription + "%";
         List<Question> questions = (List<Question>) entityManager.createQuery("select question from Question question where question.question like :searchString", Question.class)
                 .setParameter("searchString", searchString)

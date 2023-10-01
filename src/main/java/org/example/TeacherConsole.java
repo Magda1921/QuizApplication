@@ -2,17 +2,10 @@ package org.example;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
 import org.example.model.Answer;
 import org.example.model.Question;
 import org.example.model.Result;
-import org.example.model.Student;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -23,7 +16,6 @@ public class TeacherConsole {
     public TeacherConsole(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
-
 
     public void addNewQuestion() {
 
@@ -41,7 +33,7 @@ public class TeacherConsole {
                 QuestionRepository questionRepository = new QuestionRepository(entityManager);
                 boolean questionAlreadyExist = questionAlreadyExist(questionDescription);
                 if (questionAlreadyExist) {
-                    System.out.println("I'm sorry, but we cannot add this question to our database because there is already a question with the exact same description.");
+                    displayMessageIfAccountAlreadyExist();
                     break;
                 } else {
                     List<Answer> answers = addAnswers(question);
@@ -52,6 +44,10 @@ public class TeacherConsole {
         }
     }
 
+    public void displayMessageIfAccountAlreadyExist() {
+        System.out.println("I'm sorry, but we cannot add this question to our database because there is already a question with the exact same description.");
+    }
+
     public List<Answer> addAnswers(Question question) {
         Answer[] answers = new Answer[4];
         int correctAnswers = 0;
@@ -60,14 +56,11 @@ public class TeacherConsole {
             answers[i] = new Answer();
             System.out.println("Enter the " + (i + 1) + " answer");
             String answerDescription = scanner.nextLine();
-            System.out.println("Is it a correct answer? If it's a correct answer, please enter t, else please enter f");
-            String isCorrectString = scanner.nextLine();
-            boolean isCorrect = false;
-            if (isCorrectString.equals("t")) {
-                isCorrect = true;
+            System.out.println("Is it a correct answer? If it's a correct answer, please enter true, else please enter false");
+            boolean isCorrect = scanner.nextBoolean();
+            if (isCorrect) {
                 correctAnswers++;
-            } else if (isCorrectString.equals("f")) {
-                isCorrect = false;
+            } else  {
                 falseAnswers++;
             }
             if (correctAnswers > 1) {
@@ -126,7 +119,7 @@ public class TeacherConsole {
     public void updateQuestionById(int id) {
         Question questionToUpdate = findQuestionById(id);
 
-        List <Answer> answers = questionToUpdate.getAnswers();
+        List<Answer> answers = questionToUpdate.getAnswers();
         QuestionRepository questionRepository = new QuestionRepository(entityManager);
         questionRepository.removeQuestion(questionToUpdate);
 
@@ -138,7 +131,7 @@ public class TeacherConsole {
         System.out.println("Enter the new question description");
         String newQuestionDescription = scanner.nextLine();
         question.setQuestion(newQuestionDescription);
-       question.setAnswers(answers);
+        question.setAnswers(answers);
 
         questionRepository.saveNewQuestion(question);
     }

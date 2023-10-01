@@ -13,15 +13,13 @@ public class StudentConsole {
     Scanner scanner = new Scanner(System.in);
 
     private EntityManager entityManager;
-    Quiz quiz = new Quiz();
 
     public StudentConsole(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
 
-    public void addNewStudent() {
-
+    public Student addNewStudent() {
         Scanner scanner = new Scanner(System.in);
         String studentName;
 
@@ -30,10 +28,15 @@ public class StudentConsole {
 
         Student student = new Student();
         student.setName(studentName);
+
+        return student;
+    }
+
+    public void saveNewStudent(Student student) {
+
         StudentRepository studentRepository = new StudentRepository(entityManager);
         studentRepository.saveNewStudent(student);
     }
-
 
     public void play(QuestionRepository questionRepository) {
         System.out.println("Enter the quiz topic you want to play");
@@ -67,7 +70,7 @@ public class StudentConsole {
             }
             System.out.println("Enter the right answer (a, b, c or d): ");
             String answerFromUser = scanner.nextLine();
-           numberOfCorrectAnswers = countNumberOfCorrectAnswers(answerFromUser, corectAnswer, numberOfCorrectAnswers);
+            numberOfCorrectAnswers = countNumberOfCorrectAnswers(answerFromUser, corectAnswer, numberOfCorrectAnswers);
         }
 
         addNewResult(numberOfQuestions, numberOfCorrectAnswers, quizTopic, activeStudent);
@@ -94,18 +97,16 @@ public class StudentConsole {
         Scanner scanner = new Scanner(System.in);
         boolean accountIsActive = scanner.nextBoolean();
         Student activeStudent = new Student();
-        StudentConsole studentConsole = new StudentConsole(entityManager);
 
         if (accountIsActive) {
             scanner.nextLine();
             System.out.println("Please enter your name");
             String studentName = scanner.nextLine();
-            activeStudent = studentConsole.findStudentByStudentName(studentName);
+            activeStudent = findStudentByStudentName(studentName);
         } else if (!accountIsActive) {
             System.out.println("Please add a new account");
-            studentConsole.addNewStudent();
-            activeStudent = new Student();
-
+            activeStudent = addNewStudent();
+            saveNewStudent(activeStudent);
         }
         return activeStudent;
     }
