@@ -52,8 +52,6 @@ public class Quiz {
             }
         }
     }
-
-
     public void studentConsole () {
         int number = -1;
         Scanner scanner = new Scanner(System.in);
