@@ -45,7 +45,7 @@ public class QuestionRepository {
 
     public List<Question> findQuestionByPartOfName(String partOfDescription) {
         String searchString = "%" + partOfDescription + "%";
-        List<Question> questions = (List<Question>) entityManager.createQuery("select question from Question question where question.question like :searchString", Question.class)
+        List<Question> questions = entityManager.createQuery("select question from Question question where question.question like :searchString")
                 .setParameter("searchString", searchString)
                 .getResultList();
         return questions;
@@ -54,6 +54,7 @@ public class QuestionRepository {
     public List<Question> randomQuestions(List<Question> questions) {
         Random random = new Random();
         Question question1 = questions.get(random.nextInt(questions.size()));
+        questions.remove(question1);
         Question question2 = questions.get(random.nextInt(questions.size()));
         List<Question> quizQuestions = new ArrayList<>();
         quizQuestions.add(question1);

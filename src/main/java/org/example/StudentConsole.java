@@ -41,39 +41,43 @@ public class StudentConsole {
     public void play(QuestionRepository questionRepository) {
         System.out.println("Enter the quiz topic you want to play");
         String quizTopic = scanner.nextLine();
+        try {
+            Student activeStudent = getExistingAccount();
+            List<Question> questions = questionRepository.findQuestionsbyQuizTopic(quizTopic);
+            List<Question> quizQuestions = questionRepository.randomQuestions(questions);
 
-        Student activeStudent = getExistingAccount();
-        List<Question> questions = questionRepository.findQuestionsbyQuizTopic(quizTopic);
-        List<Question> quizQuestions = questionRepository.randomQuestions(questions);
+            String corectAnswer = "";
+            Integer numberOfCorrectAnswers = 0;
+            Integer numberOfQuestions = 0;
 
-        String corectAnswer = "";
-        Integer numberOfCorrectAnswers = 0;
-        Integer numberOfQuestions = 0;
+            for (Question question : quizQuestions) {
+                numberOfQuestions++;
+                displayQuestion(question);
+                List<Answer> answers = question.getAnswers();
+                List<String> abcd = new ArrayList<>();
+                abcd.add("a");
+                abcd.add("b");
+                abcd.add("c");
+                abcd.add("d");
+                for (int i = 0; i < 4; i++) {
+                    HashMap<String, String> answerHashMap = new HashMap<String, String>();
+                    answerHashMap.put(answers.get(i).getAnswer(), abcd.get(i));
+                    displayAnswer(answerHashMap);
 
-        for (Question question : quizQuestions) {
-            numberOfQuestions++;
-            displayQuestion(question);
-            List<Answer> answers = question.getAnswers();
-            List<String> abcd = new ArrayList<>();
-            abcd.add("a");
-            abcd.add("b");
-            abcd.add("c");
-            abcd.add("d");
-            for (int i = 0; i < 4; i++) {
-                HashMap<String, String> answerHashMap = new HashMap<String, String>();
-                answerHashMap.put(answers.get(i).getAnswer(), abcd.get(i));
-                displayAnswer(answerHashMap);
-
-                if (answers.get(i).isCorrect()) {
-                    corectAnswer = answerHashMap.get(answers.get(i).getAnswer());
+                    if (answers.get(i).isCorrect()) {
+                        corectAnswer = answerHashMap.get(answers.get(i).getAnswer());
+                    }
                 }
+                System.out.println("Enter the right answer (a, b, c or d): ");
+                String answerFromUser = scanner.nextLine();
+                numberOfCorrectAnswers = countNumberOfCorrectAnswers(answerFromUser, corectAnswer, numberOfCorrectAnswers);
             }
-            System.out.println("Enter the right answer (a, b, c or d): ");
-            String answerFromUser = scanner.nextLine();
-            numberOfCorrectAnswers = countNumberOfCorrectAnswers(answerFromUser, corectAnswer, numberOfCorrectAnswers);
-        }
 
-        addNewResult(numberOfQuestions, numberOfCorrectAnswers, quizTopic, activeStudent);
+            addNewResult(numberOfQuestions, numberOfCorrectAnswers, quizTopic, activeStudent);
+        }
+        catch (RuntimeException e) {
+            System.out.println("Please try play quiz again or contact support IT");
+        }
     }
 
     public int countNumberOfCorrectAnswers(String answerFromUser, String correctAnswer, int numberOfCorrectAnswers) {

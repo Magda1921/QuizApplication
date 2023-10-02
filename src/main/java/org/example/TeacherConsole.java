@@ -6,7 +6,9 @@ import org.example.model.Answer;
 import org.example.model.Question;
 import org.example.model.Result;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class TeacherConsole {
@@ -18,7 +20,7 @@ public class TeacherConsole {
     }
 
     public void addNewQuestion() {
-
+        try{
         while (true) {
             Question question = new Question();
             System.out.println("Enter next question or click x for exit");
@@ -40,7 +42,11 @@ public class TeacherConsole {
                     questionRepository.saveNewQuestion(question);
                     saveAnswers(answers);
                 }
+                }
             }
+        }
+        catch (RuntimeException e) {
+            System.out.println("Please try to add a new question again.");
         }
     }
 
@@ -57,11 +63,17 @@ public class TeacherConsole {
             System.out.println("Enter the " + (i + 1) + " answer");
             String answerDescription = scanner.nextLine();
             System.out.println("Is it a correct answer? If it's a correct answer, please enter true, else please enter false");
-            boolean isCorrect = scanner.nextBoolean();
-            if (isCorrect) {
-                correctAnswers++;
-            } else  {
-                falseAnswers++;
+            boolean isCorrect;
+            try {
+                isCorrect = scanner.nextBoolean();
+                if (isCorrect) {
+                    correctAnswers++;
+                } else {
+                    falseAnswers++;
+                }
+            } catch (RuntimeException e) {
+                System.out.println("You need to enter true or false. Please try add a new question again.");
+                break;
             }
             if (correctAnswers > 1) {
                 System.out.println("You cannot add more than 1 correct answer, please try add a question again.");
@@ -76,6 +88,7 @@ public class TeacherConsole {
                 break;
             }
         }
+
         return List.of(answers);
     }
 

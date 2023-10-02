@@ -2,17 +2,10 @@ package quizApplication;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.TypedQuery;
-import org.example.QuestionRepository;
 import org.example.StudentRepository;
-import org.example.model.Answer;
-import org.example.model.Question;
 import org.example.model.Student;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;

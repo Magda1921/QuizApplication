@@ -110,5 +110,29 @@ public class QuestionRepositoryTest {
 //        then
         assertEquals(question1,result);
     }
+    @Test
+    public void shouldFindQuestionByPartOfDescription() {
+        List<Answer> answers1 = new ArrayList<>();
+        Question question1 = new Question();
+        question1.setId(1);
+        String description = "questionDescription1";
+        question1.setQuestion(description);
+        question1.setQuizTopic("topic");
+        question1.setAnswers(answers1);
+
+        String partOfDescription = "question";
+        String searchString = "%" + partOfDescription + "%";
+
+        List<Question> questions = List.of(question1);
+
+        when(entityManager.createQuery("select question from Question question where question.question like :searchString")).thenReturn(query);
+        when(query.setParameter("searchString", searchString)).thenReturn(query);
+        when(query.getResultList()).thenReturn(questions);
+
+//        when
+        List<Question> results = questionRepository.findQuestionByPartOfName(partOfDescription);
+//        then
+        assertEquals(questions, results);
+    }
 }
 
