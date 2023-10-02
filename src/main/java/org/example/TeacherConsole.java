@@ -20,32 +20,31 @@ public class TeacherConsole {
     }
 
     public void addNewQuestion() {
-        try{
-        while (true) {
-            Question question = new Question();
-            System.out.println("Enter next question or click x for exit");
-            String questionDescription = scanner.nextLine();
-            if (questionDescription.equals("x")) {
-                break;
-            } else {
-                System.out.println("What topic of the quiz should this question be assigned to?");
-                String quizTopic = scanner.nextLine();
-                question.setQuestion(questionDescription);
-                question.setQuizTopic(quizTopic);
-                QuestionRepository questionRepository = new QuestionRepository(entityManager);
-                boolean questionAlreadyExist = questionAlreadyExist(questionDescription);
-                if (questionAlreadyExist) {
-                    displayMessageIfAccountAlreadyExist();
+        try {
+            while (true) {
+                Question question = new Question();
+                System.out.println("Enter next question or click x for exit");
+                String questionDescription = scanner.nextLine();
+                if (questionDescription.equals("x")) {
                     break;
                 } else {
-                    List<Answer> answers = addAnswers(question);
-                    questionRepository.saveNewQuestion(question);
-                    saveAnswers(answers);
-                }
+                    System.out.println("What topic of the quiz should this question be assigned to?");
+                    String quizTopic = scanner.nextLine();
+                    question.setQuestion(questionDescription);
+                    question.setQuizTopic(quizTopic);
+                    QuestionRepository questionRepository = new QuestionRepository(entityManager);
+                    boolean questionAlreadyExist = questionAlreadyExist(questionDescription);
+                    if (questionAlreadyExist) {
+                        displayMessageIfAccountAlreadyExist();
+                        break;
+                    } else {
+                        List<Answer> answers = addAnswers(question);
+                        questionRepository.saveNewQuestion(question);
+                        saveAnswers(answers);
+                    }
                 }
             }
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Please try to add a new question again.");
         }
     }
