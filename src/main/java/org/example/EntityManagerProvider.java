@@ -13,11 +13,9 @@ public class EntityManagerProvider {
         entityManagerFactory = Persistence.createEntityManagerFactory("persistenceUnit");
         entityManager = entityManagerFactory.createEntityManager();
     }
-
     public EntityManager getEntityManager() {
         return entityManager;
     }
-
     public void close() {
         entityManager.close();
         entityManagerFactory.close();

@@ -1,9 +1,8 @@
-package quizApplication;
+package quizApplication.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
-import org.example.AnswerRepository;
-import org.example.QuestionRepository;
+import org.example.repository.AnswerRepository;
 import org.example.model.Answer;
 import org.example.model.Question;
 import org.junit.Before;

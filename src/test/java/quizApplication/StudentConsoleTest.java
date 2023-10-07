@@ -8,6 +8,9 @@ import org.example.model.Answer;
 import org.example.model.Question;
 import org.example.model.Result;
 import org.example.model.Student;
+import org.example.repository.QuestionRepository;
+import org.example.repository.ResultRepository;
+import org.example.repository.StudentRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,8 +30,8 @@ public class StudentConsoleTest {
     private EntityTransaction entityTransaction;
     private StudentRepository studentRepository;
     private ResultRepository resultRepository;
-    TypedQuery<Question> query;
-    TypedQuery<Student> query1;
+    TypedQuery<Question> questionQuery;
+    TypedQuery<Student> studentQuery;
     private final PrintStream originalOut = System.out;
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
 
@@ -36,8 +39,8 @@ public class StudentConsoleTest {
     public void setUp() {
         entityManager = mock(EntityManager.class);
         entityTransaction = mock(EntityTransaction.class);
-        query = mock(TypedQuery.class);
-        query1 = mock(TypedQuery.class);
+        questionQuery = mock(TypedQuery.class);
+        studentQuery = mock(TypedQuery.class);
         System.setOut(new PrintStream(outContent));
 
         studentConsole = new StudentConsole(entityManager);
@@ -60,32 +63,6 @@ public class StudentConsoleTest {
 //        then
         verify(entityManager, times(1)).persist(student);
 
-    }
-
-    @Test
-    public void shouldReturnListOfQuestionsReturnedFromDb() {
-//        given
-        Question question1 = new Question();
-        question1.setId(1);
-        question1.setQuestion("questionDescription1");
-        question1.setQuizTopic("topic");
-        List<Answer> answers1 = new ArrayList<>();
-        question1.setAnswers(answers1);
-
-        Question question2 = new Question();
-        question2.setId(2);
-        question2.setQuestion("questionDescription2");
-        question2.setQuizTopic("topic");
-        List<Answer> answers2 = new ArrayList<>();
-        question2.setAnswers(answers2);
-
-        List<Question> questions = List.of(question1, question2);
-        when(entityManager.createQuery("select question from Question question")).thenReturn(query);
-        when(query.getResultList()).thenReturn(questions);
-//        when
-        List<Question> results = studentConsole.showQuiz();
-//        then
-        assertEquals(questions, results);
     }
 
     @Test
@@ -118,9 +95,9 @@ public class StudentConsoleTest {
         student.setResults(results);
 
         List<Student> students = List.of(student);
-        when(entityManager.createQuery("select student from Student student where student.name = ?1")).thenReturn(query1);
-        when(query1.setParameter(eq(1), eq(studentName))).thenReturn(query1);
-        when(query1.getResultList()).thenReturn(students);
+        when(entityManager.createQuery("select student from Student student where student.name = ?1")).thenReturn(studentQuery);
+        when(studentQuery.setParameter(eq(1), eq(studentName))).thenReturn(studentQuery);
+        when(studentQuery.getResultList()).thenReturn(students);
 //        when
         Student studentResult = studentConsole.findStudentByStudentName(studentName);
 //        then
@@ -237,9 +214,9 @@ public class StudentConsoleTest {
         Student activeStudent = new Student(1,studentName);
         List <Student> students = List.of(activeStudent);
 
-        when(entityManager.createQuery("select student from Student student where student.name = ?1")).thenReturn(query1);
-        when(query1.setParameter(eq(1), eq(studentName))).thenReturn(query1);
-        when(query1.getResultList()).thenReturn(students);
+        when(entityManager.createQuery("select student from Student student where student.name = ?1")).thenReturn(studentQuery);
+        when(studentQuery.setParameter(eq(1), eq(studentName))).thenReturn(studentQuery);
+        when(studentQuery.getResultList()).thenReturn(students);
 //        when
         Student studentResult = studentConsole.findStudentByStudentName(studentName);
 //        then

@@ -1,4 +1,4 @@
-package org.example;
+package org.example.repository;
 
 import jakarta.persistence.EntityManager;
 import org.example.model.Answer;
@@ -16,7 +16,6 @@ public class AnswerRepository {
         entityManager.persist(answer);
         entityManager.getTransaction().commit();
     }
-
     public void removeAnswer(Answer answer) {
         entityManager.getTransaction().begin();
         entityManager.remove(answer);

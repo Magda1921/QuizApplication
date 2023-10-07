@@ -1,8 +1,10 @@
-package org.example;
+package org.example.repository;
 
 import jakarta.persistence.EntityManager;
 import org.example.model.Question;
+import org.hibernate.SessionFactory;
 
+import javax.security.auth.login.Configuration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -62,4 +64,24 @@ public class QuestionRepository {
 
         return quizQuestions;
     }
+
+    public List<Question> getAllQuestions() {
+        List<Question> questions = entityManager.createQuery("select question from Question question").getResultList();
+        return questions;
+    }
+
+    public void updateQuestionById(int questionId, String questionDescription, String questionTopic) {
+
+        entityManager.getTransaction().begin();
+
+        Question questionToUpdate = entityManager.find(Question.class, questionId);
+        if (questionToUpdate != null) {
+            questionToUpdate.setQuestion(questionDescription);
+            questionToUpdate.setQuizTopic(questionTopic);
+        } else {
+            System.out.println("There is no question with questionId: " + questionId);
+        }
+        entityManager.getTransaction().commit();
+    }
 }
+

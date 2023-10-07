@@ -5,6 +5,9 @@ import org.example.model.Answer;
 import org.example.model.Question;
 import org.example.model.Result;
 import org.example.model.Student;
+import org.example.repository.QuestionRepository;
+import org.example.repository.ResultRepository;
+import org.example.repository.StudentRepository;
 
 import java.util.*;
 
@@ -17,7 +20,6 @@ public class StudentConsole {
     public StudentConsole(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
-
 
     public Student addNewStudent() {
         Scanner scanner = new Scanner(System.in);
@@ -72,10 +74,8 @@ public class StudentConsole {
                 String answerFromUser = scanner.nextLine();
                 numberOfCorrectAnswers = countNumberOfCorrectAnswers(answerFromUser, corectAnswer, numberOfCorrectAnswers);
             }
-
             addNewResult(numberOfQuestions, numberOfCorrectAnswers, quizTopic, activeStudent);
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Please try play quiz again or contact support IT");
         }
     }
@@ -115,13 +115,8 @@ public class StudentConsole {
         return activeStudent;
     }
 
-    public List<Question> showQuiz() {
-        List<Question> questions = entityManager.createQuery("select question from Question question").getResultList();
-        return questions;
-    }
-
     public void addNewResult(int numberOfQuestions, int numberOfRightAnswers, String quizTopic, Student activeStudent) {
-        int finalResult = ((numberOfRightAnswers / numberOfQuestions) * 100);
+        double finalResult = (((double) numberOfRightAnswers / numberOfQuestions) * 100);
         Result result = new Result();
         result.setResult(finalResult);
         result.setStudent(activeStudent);
@@ -129,24 +124,19 @@ public class StudentConsole {
 
         ResultRepository resultRepository = new ResultRepository(entityManager);
         resultRepository.saveNewResult(result);
-
     }
 
     public Student findStudentByStudentName(String studentName) {
+        StudentRepository studentRepository = new StudentRepository(entityManager);
+        List<Student> students = studentRepository.getListOfStudentsByStudentNameFromDB(studentName);
 
-        List<Student> students = entityManager.createQuery("select student from Student student where student.name = ?1")
-                .setParameter(1, studentName)
-                .getResultList();
         Student student = new Student();
         if (students.size() > 1) {
             System.out.println("There is more than 1 student with " + studentName + " name. Please provide us with your student id");
             int studentId = scanner.nextInt();
-            student = (Student) entityManager.createQuery("select student from Student student where student.id = ?1")
-                    .setParameter(1, studentId)
-                    .getSingleResult();
+            student = studentRepository.getStudentByStudentIdFromDB(studentId);
         } else if (students.size() == 1) {
             student = students.get(0);
-
         }
         return student;
     }

@@ -33,7 +33,6 @@
             <version>1.0.6</version>
         </dependency>
 
-
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>

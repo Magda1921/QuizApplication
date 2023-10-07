@@ -1,10 +1,9 @@
-package quizApplication;
+package quizApplication.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
-import org.example.AnswerRepository;
-import org.example.QuestionRepository;
+import org.example.repository.QuestionRepository;
 import org.example.model.Answer;
 import org.example.model.Question;
 import org.junit.Before;
@@ -133,6 +132,51 @@ public class QuestionRepositoryTest {
         List<Question> results = questionRepository.findQuestionByPartOfName(partOfDescription);
 //        then
         assertEquals(questions, results);
+    }
+    @Test
+    public void shouldReturnListOfQuestionsReturnedFromDb() {
+//        given
+        Question question1 = new Question();
+        question1.setId(1);
+        question1.setQuestion("questionDescription1");
+        question1.setQuizTopic("topic");
+        List<Answer> answers1 = new ArrayList<>();
+        question1.setAnswers(answers1);
+
+        Question question2 = new Question();
+        question2.setId(2);
+        question2.setQuestion("questionDescription2");
+        question2.setQuizTopic("topic");
+        List<Answer> answers2 = new ArrayList<>();
+        question2.setAnswers(answers2);
+
+        List<Question> questions = List.of(question1, question2);
+        when(entityManager.createQuery("select question from Question question")).thenReturn(query);
+        when(query.getResultList()).thenReturn(questions);
+//        when
+        List<Question> results = questionRepository.getAllQuestions();
+//        then
+        assertEquals(questions, results);
+    }
+    @Test
+    public void shouldUpdateQuestionByID() {
+//        given
+        Question question = new Question();
+        int questionId = 1;
+        String description = "questionDescription";
+        String topic = "topic";
+        question.setId(questionId);
+        question.setQuestion(description);
+        question.setQuizTopic(topic);
+        List<Answer> answers1 = new ArrayList<>();
+        question.setAnswers(answers1);
+
+        when(entityManager.getTransaction()).thenReturn(entityTransaction);
+
+//        when
+        questionRepository.updateQuestionById(questionId, description, topic);
+//        then
+        verify(entityManager, times(1)).find(Question.class, questionId);
     }
 }
 

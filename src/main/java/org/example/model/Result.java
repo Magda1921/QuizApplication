@@ -10,9 +10,9 @@ public class Result {
     @Column
     private String quizTopic;
     @Column
-    private int result;
+    private double result;
     @ManyToOne
-    @JoinColumn (name = "studentId")
+    @JoinColumn(name = "studentId")
     private Student student;
 
 
@@ -33,14 +33,6 @@ public class Result {
         this.id = id;
     }
 
-    public Student getStudent() {
-        return student;
-    }
-
-    public void setStudent(Student student) {
-        this.student = student;
-    }
-
     public String getQuizTopic() {
         return quizTopic;
     }
@@ -49,12 +41,19 @@ public class Result {
         this.quizTopic = quizTopic;
     }
 
-
-    public int getResult() {
+    public double getResult() {
         return result;
     }
 
-    public void setResult(int result) {
+    public void setResult(double result) {
         this.result = result;
+    }
+
+    public Student getStudent() {
+        return student;
+    }
+
+    public void setStudent(Student student) {
+        this.student = student;
     }
 }

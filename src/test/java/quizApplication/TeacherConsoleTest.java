@@ -4,15 +4,17 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
-import org.example.QuestionRepository;
+import org.example.repository.QuestionRepository;
 import org.example.TeacherConsole;
 import org.example.model.Answer;
 import org.example.model.Question;
 import org.example.model.Result;
 import org.example.model.Student;
+import org.example.repository.ResultRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import quizApplication.repository.QuestionRepositoryTest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -28,8 +30,9 @@ public class TeacherConsoleTest {
     private TeacherConsole teacherConsole;
     private EntityManager entityManagerMock;
     private QuestionRepository questionRepository;
-    private TypedQuery<Question> query;
-    private TypedQuery<Result> query1;
+    private ResultRepository resultRepository;
+    private TypedQuery<Question> questionQuery;
+    private TypedQuery<Result> resultQuery;
     private EntityTransaction entityTransaction;
     private final PrintStream originalOut = System.out;
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
@@ -37,13 +40,14 @@ public class TeacherConsoleTest {
     @Before
     public void setup() {
         entityManagerMock = mock(EntityManager.class);
-        query = mock(TypedQuery.class);
-        query1 = mock(TypedQuery.class);
+        questionQuery = mock(TypedQuery.class);
+        resultQuery = mock(TypedQuery.class);
         entityTransaction = mock(EntityTransaction.class);
         System.setOut(new PrintStream(outContent));
 
         questionRepository = new QuestionRepository(entityManagerMock);
         teacherConsole = new TeacherConsole(entityManagerMock);
+        resultRepository = new ResultRepository(entityManagerMock);
     }
 
     @After
@@ -59,9 +63,9 @@ public class TeacherConsoleTest {
         String quizTopic = "topic";
         Question question = new Question(description, quizTopic, answers);
 //       when
-        when(entityManagerMock.createQuery("select question from Question question where question.question = ?1")).thenReturn(query);
-        when(query.setParameter(1, description)).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(question);
+        when(entityManagerMock.createQuery("select question from Question question where question.question = ?1")).thenReturn(questionQuery);
+        when(questionQuery.setParameter(1, description)).thenReturn(questionQuery);
+        when(questionQuery.getSingleResult()).thenReturn(question);
         when(questionRepository.findQuestionByDescription(description)).thenReturn(question);
 //       then
         boolean result = teacherConsole.questionAlreadyExist(description);
@@ -76,9 +80,9 @@ public class TeacherConsoleTest {
         String quizTopic = "topic";
         Question question = new Question(description, quizTopic, answers);
 //       when
-        when(entityManagerMock.createQuery("select question from Question question where question.question = ?1")).thenReturn(query);
-        when(query.setParameter(1, description)).thenReturn(query);
-        when(query.getSingleResult()).thenThrow(new NoResultException());
+        when(entityManagerMock.createQuery("select question from Question question where question.question = ?1")).thenReturn(questionQuery);
+        when(questionQuery.setParameter(1, description)).thenReturn(questionQuery);
+        when(questionQuery.getSingleResult()).thenThrow(new NoResultException());
 //       then
         boolean result = teacherConsole.questionAlreadyExist(description);
         assertFalse(result);
@@ -126,11 +130,11 @@ public class TeacherConsoleTest {
         question2.setAnswers(answers2);
 
         List<Question> questions = List.of(question1, question2);
-        when(entityManagerMock.createQuery("select question from Question question")).thenReturn(query);
-        when(query.getResultList()).thenReturn(questions);
+        when(entityManagerMock.createQuery("select question from Question question")).thenReturn(questionQuery);
+        when(questionQuery.getResultList()).thenReturn(questions);
 
 //        when
-        List<Question> result = teacherConsole.showAllQuestions();
+        List<Question> result = questionRepository.getAllQuestions();
 //        then
         assertEquals(questions, result);
     }
@@ -147,39 +151,6 @@ public class TeacherConsoleTest {
         verify(entityManagerMock, times(1)).find(Question.class, questionId);
     }
 
-    @Test
-    public void shouldUpdateQuestionById() {
-//        given
-        int questionId = 1;
-
-        Question question1 = new Question();
-        List<Answer> answers1 = new ArrayList<>();
-        String questionDescription = "description";
-        String quizTopic = "topic";
-        question1.setQuestion(questionDescription);
-        question1.setQuizTopic(quizTopic);
-        question1.setAnswers(answers1);
-        question1.setId(questionId);
-
-        Question question2 = new Question();
-        List<Answer> answers = new ArrayList<>();
-        question2.setId(1);
-        question2.setQuestion("description");
-        question2.setQuizTopic("topic");
-        question2.setAnswers(answers1);
-        question2.setAnswers(answers);
-
-        when(entityManagerMock.getTransaction()).thenReturn(entityTransaction);
-//        when
-        teacherConsole.findQuestionById(questionId);
-        questionRepository.removeQuestion(question1);
-        questionRepository.saveNewQuestion(question2);
-//        then
-        verify(entityManagerMock, times(1)).find(Question.class, questionId);
-        verify(entityManagerMock, times(1)).remove(eq(question1));
-        verify(entityManagerMock, times(1)).persist(question2);
-
-    }
 
     @Test
     public void shouldReturnListOfResultsReturnedFromDb() {
@@ -199,10 +170,10 @@ public class TeacherConsoleTest {
         result2.setStudent(student);
 
         List<Result> resultsList = List.of(result1, result2);
-        when(entityManagerMock.createQuery("select result from Result result")).thenReturn(query1);
-        when(query1.getResultList()).thenReturn(resultsList);
+        when(entityManagerMock.createQuery("select result from Result result")).thenReturn(resultQuery);
+        when(resultQuery.getResultList()).thenReturn(resultsList);
 //        when
-        List<Result> results = teacherConsole.showAllResults();
+        List<Result> results = resultRepository.getAllResultsFromDB();
 //        then
         assertEquals(resultsList, results);
     }
@@ -231,11 +202,11 @@ public class TeacherConsoleTest {
 
         student.setResults(resultsList);
 
-        when(entityManagerMock.createQuery("select result from Result result join Student student on result.student.id = student.id where student.name = ?1", Result.class)).thenReturn(query1);
-        when(query1.setParameter(eq(1), eq(studentName))).thenReturn(query1);
-        when(query1.getResultList()).thenReturn(resultsList);
+        when(entityManagerMock.createQuery("select result from Result result join Student student on result.student.id = student.id where student.name = ?1", Result.class)).thenReturn(resultQuery);
+        when(resultQuery.setParameter(eq(1), eq(studentName))).thenReturn(resultQuery);
+        when(resultQuery.getResultList()).thenReturn(resultsList);
 //        when
-        List<Result> results = teacherConsole.findResultByStudentName(studentName);
+        List<Result> results = resultRepository.getListOfResultsByStudentNameFromDB(studentName);
 //        then
         assertEquals(resultsList, results);
     }
@@ -252,3 +223,6 @@ public class TeacherConsoleTest {
         assertEquals(expectedString, consoleOutput.trim());
     }
 }
+
+
+
