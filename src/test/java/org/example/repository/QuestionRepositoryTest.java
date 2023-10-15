@@ -1,4 +1,4 @@
-package quizApplication.repository;
+package org.example.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -107,8 +107,9 @@ public class QuestionRepositoryTest {
 //        when
         Question result = questionRepository.findQuestionByDescription(description);
 //        then
-        assertEquals(question1,result);
+        assertEquals(question1, result);
     }
+
     @Test
     public void shouldFindQuestionByPartOfDescription() {
         List<Answer> answers1 = new ArrayList<>();
@@ -133,6 +134,7 @@ public class QuestionRepositoryTest {
 //        then
         assertEquals(questions, results);
     }
+
     @Test
     public void shouldReturnListOfQuestionsReturnedFromDb() {
 //        given
@@ -158,6 +160,7 @@ public class QuestionRepositoryTest {
 //        then
         assertEquals(questions, results);
     }
+
     @Test
     public void shouldUpdateQuestionByID() {
 //        given
@@ -178,5 +181,24 @@ public class QuestionRepositoryTest {
 //        then
         verify(entityManager, times(1)).find(Question.class, questionId);
     }
+
+    @Test
+    public void shouldFindQuestionById() {
+        // given
+        int id = 1;
+        Question question = new Question();
+        question.setId(id);
+        question.setQuizTopic("topic");
+        question.setQuestion("question1");
+
+        when(entityManager.find(Question.class, id)).thenReturn(question);
+
+        // when
+        Question result = questionRepository.findQuestionById(id);
+
+        // then
+        assertEquals(question, result);
+    }
 }
+
 

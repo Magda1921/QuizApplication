@@ -1,133 +1,72 @@
 package org.example;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
-import org.example.model.Answer;
-import org.example.model.Question;
-import org.example.repository.AnswerRepository;
-import org.example.repository.QuestionRepository;
+import org.example.model.Result;
+import org.example.model.Student;
+import org.example.repository.ResultRepository;
+import org.example.repository.StudentRepository;
 
 import java.util.List;
 import java.util.Scanner;
 
 public class TeacherConsole {
     Scanner scanner = new Scanner(System.in);
-    private EntityManager entityManager;
 
-    public TeacherConsole(EntityManager entityManager) {
-        this.entityManager = entityManager;
+    public static final int ADD_A_NEW_QUESTIONANewQuestion = 1;
+    public static final int REMOVE_QUESTION = 2;
+    public static final int SHOW_ALL_QUESTIONS = 3;
+    public static final int FIND_QUESTION_BY_PART_OF_THE_DESCRIPTION = 4;
+    public static final int UPDATE_QUESTION_BY_ID = 5;
+    public static final int SHOW_ALL_RESULTS = 6;
+    public static final int FIND_RESULT_BY_STUDENT_NAME = 7;
+    public static final int SHOW_ALL_STUDENTS = 8;
+
+    private TeacherService teacherService;
+    private StudentService studentService;
+
+    public TeacherConsole(TeacherService teacherService, StudentService studentService) {
+        this.teacherService = teacherService;
+        this.studentService = studentService;
     }
 
-    public void addNewQuestion() {
-
-        try {
-            while (true) {
-                Question question = new Question();
-                System.out.println("Enter next question or click x for exit");
-                String questionDescription = scanner.nextLine();
-                if (questionDescription.equals("x")) {
-                    break;
-                } else {
-                    System.out.println("What topic of the quiz should this question be assigned to?");
-                    String quizTopic = scanner.nextLine();
-                    question.setQuestion(questionDescription);
-                    question.setQuizTopic(quizTopic);
-                    QuestionRepository questionRepository = new QuestionRepository(entityManager);
-                    boolean questionAlreadyExist = questionAlreadyExist(questionDescription);
-                    if (questionAlreadyExist) {
-                        displayMessageIfAccountAlreadyExist();
-                        break;
-                    } else {
-                        List<Answer> answers = addAnswers(question);
-                        if (answers != null) {
-                            questionRepository.saveNewQuestion(question);
-                            saveAnswers(answers);
-                        }
-                    }
-                }
-            }
-        } catch (RuntimeException e) {
-            System.out.println("Please try to add a new question again.");
-        }
-    }
-
-    public void displayMessageIfAccountAlreadyExist() {
-        System.out.println("I'm sorry, but we cannot add this question to our database because there is already a question with the exact same description.");
-    }
-
-    public List<Answer> addAnswers(Question question) {
-        Answer[] answers = new Answer[4];
-        int correctAnswers = 0;
-        int falseAnswers = 0;
-        for (int i = 0; i < 4; i++) {
-            answers[i] = new Answer();
-            System.out.println("Enter the " + (i + 1) + " answer");
-            String answerDescription = scanner.nextLine();
-            System.out.println("Is it a correct answer? If it's a correct answer, please enter true, else please enter false");
-            boolean isCorrect;
-            try {
-                isCorrect = scanner.nextBoolean();
-                scanner.nextLine();
-                if (isCorrect) {
-                    correctAnswers++;
-                } else {
-                    falseAnswers++;
-                }
-            } catch (RuntimeException e) {
-                System.out.println("You need to enter true or false. Please try add a new question again.");
-                break;
-            }
-            if (correctAnswers > 1) {
-                System.out.println("You cannot add more than 1 correct answer, please try add a question again.");
-                break;
-            }
-            if (falseAnswers > 3) {
-                System.out.println("You cannot add more than 3 false answers, please try add a question again.");
-                return null;
-            }
-            answers[i].setAnswer(answerDescription);
-            answers[i].setCorrect(isCorrect);
-            answers[i].setQuestion(question);
-        }
-        return List.of(answers);
-    }
-
-    public void saveAnswers(List<Answer> answers) {
-        for (int j = 0; j < 4; j++) {
-            AnswerRepository answerRepository = new AnswerRepository(entityManager);
-            answerRepository.saveNewAnswer(answers.get(j));
-        }
-    }
-
-    public boolean questionAlreadyExist(String questionDescription) {
-        QuestionRepository questionRepository = new QuestionRepository(entityManager);
-        try {
-            Question question = questionRepository.findQuestionByDescription(questionDescription);
-            return true;
-        } catch (NoResultException e) {
-            return false;
-        }
-    }
-
-    public void removeQuestion() {
+    public void run() {
+        int userSelection = -1;
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter the question id you want to delete");
-        int id = scanner.nextInt();
-        QuestionRepository questionRepository = new QuestionRepository(entityManager);
-        Question question = findQuestionById(id);
-        questionRepository.removeQuestion(question);
+        while (userSelection != 0) {
+            System.out.println("Please select one of option:");
+            System.out.println("0 - exit program");
+            System.out.println("1 - add a new question");
+            System.out.println("2 - remove question");
+            System.out.println("3 - show all questions");
+            System.out.println("4 - find question by part of the description");
+            System.out.println("5 - update question by id");
+            System.out.println("6 - show all results");
+            System.out.println("7 - find result by student name");
+            System.out.println("8 - show all students");
 
+            userSelection = Integer.parseInt(scanner.nextLine());
+            if (userSelection == ADD_A_NEW_QUESTIONANewQuestion) {
+                teacherService.addNewQuestion();
+            } else if (userSelection == REMOVE_QUESTION) {
+                System.out.println("Enter the question id you want to delete");
+                int id = scanner.nextInt();
+                teacherService.removeQuestion(id);
+            } else if (userSelection == SHOW_ALL_QUESTIONS) {
+                teacherService.showAllQuestions();
+            } else if (userSelection == FIND_QUESTION_BY_PART_OF_THE_DESCRIPTION) {
+                teacherService.showQuestionsByPartOfDescription();
+            } else if (userSelection == UPDATE_QUESTION_BY_ID) {
+                teacherService.updateQuestionByProvidedId();
+            } else if (userSelection == SHOW_ALL_RESULTS) {
+                teacherService.showAllResults();
+            } else if (userSelection == FIND_RESULT_BY_STUDENT_NAME) {
+                teacherService.showResultByStudentName();
+            } else if (userSelection == SHOW_ALL_STUDENTS) {
+                studentService.showAllStudents();
+            }
+        }
     }
 
-    public Question findQuestionById(int id) {
-        Question question = entityManager.find(Question.class, id);
-        return question;
-    }
 
-    public void updateQuestionByProvidedId(int id, String newQuestionDescription, String newQuizTopic) {
-        QuestionRepository questionRepository = new QuestionRepository(entityManager);
-        questionRepository.updateQuestionById(id, newQuestionDescription, newQuizTopic);
-    }
 }
 
 
