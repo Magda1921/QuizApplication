@@ -68,12 +68,10 @@ public class QuestionRepository {
 
             return quizQuestions;
         }
-
         public List<Question> getAllQuestions () {
             List<Question> questions = entityManager.createQuery("select question from Question question").getResultList();
             return questions;
         }
-
         public void updateQuestionById ( int questionId, String questionDescription, String questionTopic){
 
             entityManager.getTransaction().begin();
