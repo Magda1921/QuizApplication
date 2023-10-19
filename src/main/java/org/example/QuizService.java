@@ -7,10 +7,7 @@ import org.example.model.Student;
 import org.example.repository.QuestionRepository;
 import org.example.repository.ResultRepository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class QuizService {
     Scanner scanner = new Scanner(System.in);
@@ -51,7 +48,19 @@ public class QuizService {
 
     List<Question> prepareQuestionsByQuizTopic(String quizTopic) {
         List<Question> questions = questionRepository.findQuestionsbyQuizTopic(quizTopic);
-        List<Question> quizQuestions = questionRepository.randomQuestions(questions);
+        List<Question> quizQuestions = randomQuestions(questions);
+        return quizQuestions;
+    }
+
+    List<Question> randomQuestions(List<Question> questions) {
+        Random random = new Random();
+        Question question1 = questions.get(random.nextInt(questions.size()));
+        questions.remove(question1);
+        Question question2 = questions.get(random.nextInt(questions.size()));
+        List<Question> quizQuestions = new ArrayList<>();
+        quizQuestions.add(question1);
+        quizQuestions.add(question2);
+
         return quizQuestions;
     }
 

@@ -57,18 +57,6 @@ public class QuestionRepository {
             return questions;
         }
 
-        public List<Question> randomQuestions (List <Question> questions) {
-            Random random = new Random();
-            Question question1 = questions.get(random.nextInt(questions.size()));
-            questions.remove(question1);
-            Question question2 = questions.get(random.nextInt(questions.size()));
-            List<Question> quizQuestions = new ArrayList<>();
-            quizQuestions.add(question1);
-            quizQuestions.add(question2);
-
-            return quizQuestions;
-        }
-
         public List<Question> getAllQuestions () {
             List<Question> questions = entityManager.createQuery("select question from Question question").getResultList();
             return questions;

@@ -23,7 +23,6 @@ public class QuizServiceTest {
     private StudentService studentService;
     private QuestionRepository questionRepository;
     private ResultRepository resultRepository;
-    private final PrintStream originalOut = System.out;
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
 
     @Before
@@ -50,7 +49,6 @@ public class QuizServiceTest {
         quizService.prepareQuestionsByQuizTopic(quizTopic);
 //        then
         verify(questionRepository, times(1)).findQuestionsbyQuizTopic(quizTopic);
-        verify(questionRepository, times(1)).randomQuestions(questions);
     }
 
     @Test
@@ -131,5 +129,16 @@ public class QuizServiceTest {
         String consoleOutput = outContent.toString();
         String expectedString = "topic";
         assertEquals(expectedString, consoleOutput.trim());
+    }
+    @Test
+    public void shouldGetTheNumberOfCorrectAnswers() {
+//        given
+        String answerFromUser= "a";
+        String correctAnswer = "a";
+        int numberOfCorrectAnswers = 1;
+//        when
+        int result = quizService.countNumberOfCorrectAnswers(answerFromUser, correctAnswer, numberOfCorrectAnswers);
+//        then
+        assertEquals(result, 2);
     }
 }
