@@ -65,11 +65,13 @@ public class StudentServiceTest {
         student.setResults(results);
 
         List<Student> students = List.of(student);
+        when(studentRepository.getListOfStudentsByStudentNameFromDB(studentName)).thenReturn(students);
 
 //        when
         Student studentResult = studentService.findStudentByStudentName(studentName);
 //        then
         verify(studentRepository, times(1)).getListOfStudentsByStudentNameFromDB(studentName);
+        assertEquals(studentResult, student);
     }
     @Test
     public void shouldShowAllStudents() {

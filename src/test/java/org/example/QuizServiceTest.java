@@ -130,10 +130,11 @@ public class QuizServiceTest {
         String expectedString = "topic";
         assertEquals(expectedString, consoleOutput.trim());
     }
+
     @Test
     public void shouldGetTheNumberOfCorrectAnswers() {
 //        given
-        String answerFromUser= "a";
+        String answerFromUser = "a";
         String correctAnswer = "a";
         int numberOfCorrectAnswers = 1;
 //        when

@@ -65,10 +65,12 @@ public class TeacherServiceTest {
         String description = "description";
         String quizTopic = "topic";
         Question question = new Question(description, quizTopic, answers);
+        when(questionRepository.findQuestionByDescription(description)).thenReturn(question);
 //        when
-        teacherService.findQuestionByDescription(description);
+        Question result = teacherService.findQuestionByDescription(description);
 //        then
         verify(questionRepository, times(1)).findQuestionByDescription(description);
+        assertEquals(question, result);
     }
 
     @Test
@@ -91,7 +93,7 @@ public class TeacherServiceTest {
         Answer answer2 = new Answer("answer2", false);
         Answer answer3 = new Answer("answer3", false);
         Answer answer4 = new Answer("answer4", false);
-        List <Answer> answers = List.of(answer1, answer2, answer3, answer4);
+        List<Answer> answers = List.of(answer1, answer2, answer3, answer4);
 //        when
         teacherService.saveAnswers(answers);
 //        then
@@ -100,6 +102,7 @@ public class TeacherServiceTest {
         verify(answerRepository, times(1)).saveNewAnswer(answer3);
         verify(answerRepository, times(1)).saveNewAnswer(answer4);
     }
+
     @Test
     public void shouldRemoveQuestion() {
 //        given
@@ -107,11 +110,11 @@ public class TeacherServiceTest {
         Answer answer2 = new Answer("answer2", false);
         Answer answer3 = new Answer("answer3", false);
         Answer answer4 = new Answer("answer4", false);
-        List <Answer> answers = List.of(answer1, answer2, answer3, answer4);
+        List<Answer> answers = List.of(answer1, answer2, answer3, answer4);
         String description = "description";
         String quizTopic = "topic";
         int id = 1;
-        Question question = new Question(id,description, quizTopic, answers);
+        Question question = new Question(id, description, quizTopic, answers);
         when(questionRepository.findQuestionById(id)).thenReturn(question);
 //        when
         teacherService.removeQuestion(id);
@@ -120,14 +123,15 @@ public class TeacherServiceTest {
         verify(questionRepository, times(1)).findQuestionById(id);
         verify(questionRepository, times(1)).removeQuestion(question);
     }
+
     @Test
     public void shouldShowAllQuestions() {
 //        given
         List<Answer> answers1 = new ArrayList<>();
         List<Answer> answers2 = new ArrayList<>();
-        Question question1 = new Question(1,"description1", "topic", answers1);
+        Question question1 = new Question(1, "description1", "topic", answers1);
         Question question2 = new Question(2, "description2", "topic", answers2);
-        List <Question> questions = List.of(question1, question2);
+        List<Question> questions = List.of(question1, question2);
         when(questionRepository.getAllQuestions()).thenReturn(questions);
 //        when
         teacherService.showAllQuestions();
@@ -135,13 +139,14 @@ public class TeacherServiceTest {
         String consoleOutput = outContent.toString();
         String expectedString = "Id: 1\r\n" +
                 "Question: description1\r\n" +
-                "Quiz topic: topic\r\n"+
-                "Id: 2\r\n"+
+                "Quiz topic: topic\r\n" +
+                "Id: 2\r\n" +
                 "Question: description2\r\n" +
                 "Quiz topic: topic";
         assertEquals(expectedString, consoleOutput.trim());
         verify(questionRepository, times(1)).getAllQuestions();
     }
+
     @Test
     public void shouldShowAllResults() {
 //        given
@@ -156,11 +161,11 @@ public class TeacherServiceTest {
 //        then
         String consoleOutput = outContent.toString();
         String expectedString = "Result Id : 1\r\n" +
-                "Result : 90.0\r\n"+
+                "Result : 90.0\r\n" +
                 "Quiz topic : topic\r\n" +
                 "Student name : Ann\r\n" +
-                "Result Id : 2\r\n"+
-                "Result : 75.0\r\n"+
+                "Result Id : 2\r\n" +
+                "Result : 75.0\r\n" +
                 "Quiz topic : topic\r\n" +
                 "Student name : John";
         assertEquals(expectedString, consoleOutput.trim());
