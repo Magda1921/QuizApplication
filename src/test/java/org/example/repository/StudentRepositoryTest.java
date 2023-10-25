@@ -1,4 +1,4 @@
-package quizApplication.repository;
+package org.example.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -29,7 +29,6 @@ public class StudentRepositoryTest {
         studentRepository = new StudentRepository(entityManager);
         query = mock(TypedQuery.class);
     }
-
     @Test
     public void shouldSaveStudentToDb() {
 //       given
@@ -40,9 +39,7 @@ public class StudentRepositoryTest {
         studentRepository.saveNewStudent(student);
 //        then
         verify(entityManager, times(1)).persist(student);
-
     }
-
     @Test
     public void shouldReturnListOfStudentsReturnedFromDb() {
 //      given
@@ -58,7 +55,6 @@ public class StudentRepositoryTest {
 //        then
         assertEquals(students, result);
     }
-
     @Test
     public void shouldGetListOfStudentsByStudentNameFromDB() {
 //        given
@@ -79,7 +75,6 @@ public class StudentRepositoryTest {
 //        then
         assertEquals(students, result);
     }
-
     @Test
     public void shouldGetStudentByStudentIdFromDB() {
 //        given
@@ -98,6 +93,5 @@ public class StudentRepositoryTest {
         Student studentResult = studentRepository.getStudentByStudentIdFromDB(studentId);
 //        then
         assertEquals(student, studentResult);
-
     }
 }

@@ -22,6 +22,13 @@ public class Result {
         this.result = result;
     }
 
+    public Result(int id, String quizTopic, double result, Student student) {
+        this.id = id;
+        this.quizTopic = quizTopic;
+        this.result = result;
+        this.student = student;
+    }
+
     public Result() {
     }
 

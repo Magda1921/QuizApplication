@@ -1,4 +1,4 @@
-package quizApplication.repository;
+package org.example.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
